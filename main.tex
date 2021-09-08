@@ -1,39 +1,44 @@
 \documentclass{article}
+\usepackage[a4,  margin=4 cm]{geometry}
+
 
 % \usepackage{natbib}
 \input{preamble.tex}
 
 
-\title{Robust Average Case Analysis on the Non-Strongly Convex Setting \\
-or the wonders of the Nesterov method}
+\title{Average Case Universality in the Convex setting}
 
 
 \author{Leonardo Cunha
 \and Gauthier Gidel \\
-\and Fabien Pedregosa \\
+\and Fabian Pedregosa \\
 \and Courtney Paquette \\
 \and Damien Scieur}
-\date{May 2021}
+
+
+\date{August 2021}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-    Recent works \cite{pedregosa2020acceleration,paquette2020halting,scieur2020universal} have studied the convergence properties of first order optimization methods on distributions of quadratic problems. \\
-    In this work we contrast the Nesterov Accelerated Method \cite{nesterov2003introductory} and a family of methods we derive,  namely the Generalized Chebyshev method, which are optimal when the problem's expected spectral distribution is a beta weight.\\
-    As the exact spectral distribution is too strong of an hypothesis to enable practical decision making regarding the choice of algorithm, we compare the methods under a weaker hypothesis on the distribution and notice that in the average case a problem's complexity is driven to the concentration of the problem's eigenspectra around the edges of it's support, in contrast to  only the values of the edges in the worst case. \\
-    We show that the Nesterov is \textbf{robustly} close to optimum convergence, in the asymptotic sense
+    Recent works \cite{pedregosa2020acceleration,paquette2020halting,scieur2020universal} have studied the convergence properties of first order optimization methods on distributions of quadratic problems. 
+    The average case framework allows for a more fine grained and representative analysis of convergence in exchange of a more precise hypothesis over the data, namely the expected spectral distribution. \\
+    In this work we introduce a middle ground between the coarseness of the  worst case analysis and the unrealistic hypothesis of an exact spectrum by showing that, in the asymptotic sense, a problem's complexity is driven to the concentration of near the edges it's eigenspectra. \\
+    We introduce the Generalized Chebyshev method, which is   asymptotically optimal under an hypothesis on this concentration, and globally optimal when the spectrum is a beta weight.\\
+    We compare it`s performance to the Nesterov Method \cite{nesterov2003introductory}, and Gradient descent, showing that Nesterov is robustly close to the asymptotic optimum in practical scenarios.
 \end{abstract}
 \section{Introduction}
 The analysis of the average complexity of algorithms is an old feature of computer science. Notably, the quicksort algorithm presents worst-case complexity of $O(n^2)$, but average case complexity of $O(n\log n)$ and is  empirically faster than HeapSort or MergeSort. Average case complexity also drives much of the decisions made in cryptography \cite{bogdanov2006average}\\
 The average case analysis of optimization algorithm has stayed an unexplored problem for long because of the ill-defined notion of a distribution over the optimization problems. Recently though, \cite{pedregosa2020acceleration} has derived a framework to systemically evaluate the complexity of first order methods on distributions of quadratic minimization problems by tying the average of the residuals to the \textit{expected spectral distribution} of the problem, which is a well studied object on Random Matrix Theory. \\
-\cite{paquette2020halting} has expanded on this work by introducing a new generative model for the problems and deriving the average complexity of the Nesterov Accelerated Method on a particular distribution and showing the strong concentration of the metrics around their expected value. \\
+\cite{paquette2020halting} has expanded on this work by introducing a new generative model for the problems and deriving the average complexity of the Nesterov Accelerated Method on a particular distribution and showing the strong concentration of the metrics around the infinite-dimensional limit \\
 \cite{scieur2020universal} has shown that for a strongly convex problem with eigenvalues supported on a contiguous interval, the optimal average case complexity is asymptotically equal to the one given by the Polyak Heavy Ball method in the worst-case.  
 
 %%There are more works on the average case I did not introduce , such as those done on the stochastic setting and on CG. They are not directly relevant to our work, IDK if I should introduce them aswell 
 
 \paragraph{}
-In the non-strongly convex case, optimization drastically slows down, as gradient descent presents worst case convergence in $\Theta(\frac{1}{n})$ and Nesterov is $\Theta(\frac{1}{n^2})$, which matches a lower bound on worst case convergence up to a constant factor. \\
-We believe the non strongly convex, worst case scenario is very pessimistic, especially in high dimensions where the problem has enough degrees of freedom to be highly adversarial [citation of the tutorial here+ quotation marks]. Further, as we are dealing with the sublinear convergence of large scale algorithms,  accelerated sublinear rates may be the difference between problems that are computationally feasible and those who are not  \\
+In the non-strongly convex case, optimization drastically slows down, as gradient descent presents worst case convergence in $\Theta(\frac{1}{n})$ and Nesterov is $\Theta(\frac{1}{n^2})$, which matches a lower bound on worst case convergence up to a constant factor \cite{nesterov2003introductory}. \\
+We argue that, differently from the strongly convex case where we asymptotically identify worst and average case, in the simply convex scenario is very pessimistic. Especially in high dimensions  the problem has enough degrees of freedom to be highly adversarial. \\
+These differences become important because, as we are dealing with the sublinear convergence of large scale algorithms,  accelerated sublinear rates may be the difference between problems that are computationally feasible and those who are not  \\
 A drawback on average case analysis is that it relies, \textit{à priori}, on a much stronger hypothesis, the shape of the \textit{expected spectral distribution} as we'll see, when compared to the worst case analysis, that relies only on the values of the edges of this distribution. \\
 We show that the main aspects of the convergence, which from an optimization point view are the asymptotic rates, are determined by a low dimensional characterization of the distribution. Parametrizing the distributions in terms of the \textbf{concentration} of the eigenvalues around the edges, allow us to effectively determine the precise rates for all continuous distributions supported in an interval $]0,L[$, \\
 We can then compare algorithms robustly, allowing an effective choice of algorithms under a more realistic lack of information on the eigenspectra. \\
@@ -41,7 +46,7 @@ We can then compare algorithms robustly, allowing an effective choice of algorit
 %As we found out, in this setting different distributions gave origin to different sublinear rates, indeed the worst case complexity can be arbitrarily pessimistic depending on the distribution as we'll see. Our concern for universality got changed into a concern for robustness. We can thus phrase the question this paper tries to answer as the search for the method who has "good" performance under the broadest set of hypothesis over the problem distribution. \\
 \paragraph{}
 In the following, we will first present the average case framework first introduced by \cite{pedregosa2020acceleration}, we'll then present some basic universality results showing that the complexity is driven by the concentration the eigenvalues near the edges of the support. \\
-We will then compute the optimal rates and those of the Nesterov in terms of the concentration parameters, and we observe we can find the worst case rates as limit on the average case. \\
+We will then compute the optimal rates those  of Gradient Descent and of Nesterov in terms of the concentration parameters, and we observe we can find the worst case rates as limit on the average case. \\
 Finally we'll state our main results : the Nesterov accelerated method asymptotic rate is close to the optimal one for relatively high concentrations of the eigenspectra near $0$, only a $\log$ term under a standard hypothesis. This means the Nesterov method is a very robust choice on practical scenarios.
 
 
@@ -159,10 +164,10 @@ Following remark \ref{rmk: momentum based}, the optimal method is derived from t
 
 
 
-\section{Generalized Chebyshev method}
+\section{Generalized Chebyshev and Laguerre methods}
 Being able to write the rates in terms of the \textit{expected spectral distribution} ties the average case framework to the field of \textit{random matrix theory}. Indeed, because of results from this field, certain e.s.d's are considered more natural than others. We illustrate this and motivate following considerations with:
 \begin{prop}[Marchenko Pastur Theorem]
-Let $X_n$ be a $m\times n$ random matrix with $X_{ij}$ i.i.d with variance $\sigma^2$ and $Y_n=\frac{1}{n}X_nX_n^T$. Let $\mu_n$ be the expected spectrum of $Y_n$, then, as $n\rightarrow\infty$$\frac{m}{n} \rightarrow r$:
+Let $X_n$ be a $m\times n$ random matrix with $X_{ij}$ i.i.d with variance $\sigma^2$ and $Y_n=\frac{1}{n}X_nX_n^T$. Let $\mu_n$ be the expected spectrum of $Y_n$, then, as $n\rightarrow\infty$, $\frac{m}{n} \rightarrow r$:
 
 \begin{align*}
 &\mu_n\xrightarrow{\text{weakly}}{}\max(0,1-\frac{1}{r})\delta_0+\mu_{MP} \\
@@ -171,16 +176,17 @@ Let $X_n$ be a $m\times n$ random matrix with $X_{ij}$ i.i.d with variance $\sig
 With $\lambda^+=\sigma^2(1+\sqrt{r})^2$, $\lambda^-=\max(0,\sigma^2(1-\sqrt{r})^2)$
 
 \end{prop}
-The Marchenko Pastur distribution $\mu_{MP}$ can be considered a natural first model for e.s.d's as it arises universally, note there's no specific distribution of $X_{ij}$ considered, from i.i.d. noise in the matrix entries.\\
+The Marchenko Pastur distribution $\mu_{MP}$ can be considered a natural first model for e.s.d's as it arises universally from i.i.d. noise in the matrix entries. Note there's no specific distribution of $X_{ij}$ considered. \\
 When $r=1 d\mu_{MP}\propto \lambda^{-1/2}\sqrt{\lambda^+-\lambda}$, Though practical e.s.d's diverge from it, the concentration near $0$ is often verified.
 \cite{pedregosa2020acceleration} first derived the optimal method wrt. $\mu_{MP}$, and \cite{paquette2020halting} derived Nesterov's rates under it. As we are mainly concerned with being robust, a natural step is to consider the Beta weights $d\mu(\lambda)\propto\lambda^\xi(L-\lambda)^\tau$ but we are mainly interested in distributions with similar concentrations near $0$, i.e. $\xi\approx -1/2$.\\
-The optimal method w.r.t. $\mu$ and metric $l$ is associated to a shifted Jacobi polynomial $\tp_t^{\alpha,\beta}$ with $\beta=\xi+l+1, \alpha=\tau$. When $\alpha=\beta=-1/2$ we retrieve the \textit{Chebyshev Method} \cite{hestenes1952methods}, so we call this the Generalized Chebyshev Method
-We derive the coefficients associated to this method in appendix \ref{jacobi recurrence}.\\
+The optimal method w.r.t. $\mu$ and metric $l$ is associated to a shifted Jacobi polynomial $\tp_t^{\alpha,\beta}$ with $\beta=\xi+l+1, \alpha=\tau$. When $\alpha=\beta=-1/2$ we retrieve the \textit{Chebyshev Method} \cite{hestenes1952methods}, so we call this the Generalized Chebyshev Method. \\
+We'll also consider the Laguerre method, which is optimal w.r.t. $d\mu(x)=\frac{x^\alpha e^{-x}}{\Gamma(\alpha+1)}$, taking $\alpha$ as a parameter. This method is proposed to optimize non-smooth functions\\
+Both these methods are generalizations of one that have been proposed in \cite{pedregosa2020acceleration}. We derive the coefficients associated to these methods in appendix \ref{jacobi recurrence}.\\
 \begin{remark}
 The Generalized Chebyshev also takes the largest eigenvalue $L$ as a parameter, but the rates we'll show are robust to an \textit{overestimation} of $L$
 \end{remark}
 
-\section{Robust Average Case Rate}
+\section{Robust Average Case Rates}
 We will establish our assumption over the spectral distributions. It effectively allows us to parametrize all of our distributions of interest in a way that characterize the asymptotic convergence, diving them into equivalence classes .
 
 \begin{assumption}
@@ -188,12 +194,13 @@ We will write $\nu_{\tau,\xi}$ for a continuous distribution supported in $(0,L]
 \label{assumption}
 \end{assumption}
 
-We single out from each of these classes the beta distributions for which we can compute the rates, then show the rates to be the same inside $\nu_{\tau,\xi}$.\\ 
-
+We argue this is a much more mild assumption to be made than the exact spectral distribution and it covers any distribution modeling a smooth convex problem. \\
+The $\xi$ works as a measure of how close we are to the worst case scenario, as it approaches $-1$. Samples in finite dimension, of distributions with high values of $\xi$, will work as strongly convex functions in practice.
 \paragraph{}
-We show that $\nu_{\tau,\xi}$ indeed behaves like an equivalence class when considering the asymptotics of the convergence of a Jacobi method: only the concentrations near the edge matter:
+We show that $\nu_{\tau,\xi}$ indeed behaves like an equivalence class when considering the asymptotics of the convergence of a Jacobi method: only the concentrations near the edge matter. We do this by singling out from each of these classes the beta distributions for which we can compute the rates, then show the rates to be the same inside $\nu_{\tau,\xi}$.\\ 
 
-\begin{restatable}{theorem}{robustjacobi}[Robustness of Jacobi]\label{thm: jacobirates}
+
+\begin{restatable}{theorem}{robustjacobi}\label{thm: jacobirates}
 A Generalized Chebyshev Method with parameters $(\alpha,\beta)$ applied to a problem with e.s.d. as in assumption \ref{assumption} has rates:
 
 \begin{align}
@@ -231,10 +238,10 @@ Where $C^{\alpha,\beta}_\nu$ is a distribution dependent constant.
 
 Theorem \ref{thm: optimality} shows that a proper choice of $\alpha,\beta$ can indeed make the Jacobi polynomial asymptotically optimal w.r.t. to any $\nu_{\tau,\xi}$. 
 
-\begin{restatable}{theorem}{jacoptimal}[Optimality of Jacobi]\label{thm: optimality}
-Let $\nu$ follow assumption \ref{assumption}. \\
-The optimal asymptotic rate for $\mathbb{E}[f(\xx_t)-f(\xx^\star)]$ is $t^{-2(\xi+2}$ and is attained by the Chebyshev Method with parameters $(\tau,\xi+2)$. \\
-The optimal rate for $\mathbb{E}[||\nabla f(\xx_t)||^2_2]$ is $t^{-2(\xi+3}$ and is attained by the Chebyshev Method with parameters $(\tau,\xi+3)$.
+\begin{restatable}{theorem}{jacoptimal}\label{thm: optimality}
+Let $\nu$ follow assumption \ref{assumption}.
+The optimal asymptotic rate for $\mathbb{E}[f(\xx_t)-f(\xx^\star)]$ is $t^{-2(\xi+2)}$ and is attained by the Chebyshev Method with parameters $(\tau,\xi+2)$. \\
+The optimal rate for $\mathbb{E}[||\nabla f(\xx_t)||^2_2]$ is $t^{-2(\xi+3)}$ and is attained by the Chebyshev Method with parameters $(\tau,\xi+3)$.
 \end{restatable}
 
 For the function value ($l=1$), we find rates that approach $t^{-2}$ as $\xi\rightarrow -1$, showing the worst case as a limit (over the considered distribution) on the average case.
@@ -249,22 +256,22 @@ We can contextualize our results on the field of orthogonal polynomials as asymp
 We remark that the above theorems imply that, at least asymptotically, the Jacobi method is robust for a suboptimal choice of parameters up to $1/2$ below the optimal choice of $\beta$ and infinitely above. \\
 For completeness, we also derive worst case rates for the Jacobi method:
 
-\begin{restatable}{prop}{worstcase}[Worst case Jacobi rates]
-Let $H$ be a convex, L-smooth function. Then, For the Generalized Chebyshev Method with parameters $(\alpha,\beta)$ we have $f(\xx_t)-f(\xx^\star)=O(Lt^{v_1(\alpha,\beta)})$, and $||\nabla f(\xx_t)-f(\xx^\star)||^2=O(L^2t^{v_2(\alpha,\beta)})$, with:
+\begin{restatable}{prop}{worstcase}
+Let $f$ be a convex, L-smooth quadratic function. Then, For the Generalized Chebyshev Method with parameters $(\alpha,\beta)$ we have:
 
 \begin{align}
-    v_1(\alpha,\beta)&=\left\{
+ f(\xx_t)-f(\xx^\star) \leq C_1L\left\{
     \begin{array}{cc}
-           2(\alpha-\beta) &\text{if} \hspace{0.5 cm} \alpha>\beta-1 \\
-         -1-2\beta, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq \beta-1\hspace{0.5 cm} \beta\leq \frac{1}{2}\\
-         -2, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq\beta-1\hspace{0.5 cm} \beta\geq \frac{1}{2} 
+           t^{2(\alpha-\beta)} &\text{if} \hspace{0.5 cm} \alpha>\beta-1 \\
+         t^{-1-2\beta}, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq \beta-1\hspace{0.5 cm} \beta\leq \frac{1}{2}\\
+         t^{-2}, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq\beta-1\hspace{0.5 cm} \beta\geq \frac{1}{2} 
     \end{array}
-    \right\\
-    v_2(\alpha,\beta)&=\left\{
+    \right .\\
+    ||\nabla f(\xx_t)-f(\xx^\star)||\leq C_2L^2\left\{
     \begin{array}{cc}
-           2(\alpha-\beta) &\text{if} \hspace{0.5 cm} \alpha>\beta-2 \\
-         -1-2\beta, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq \beta-2\hspace{0.5 cm} \beta\leq 3/2\\
-         -4, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq\beta-2\hspace{0.5 cm} \beta\geq 3/2
+           t^{2(\alpha-\beta)} &\text{if} \hspace{0.5 cm} \alpha>\beta-2 \\
+         t^{-1-2\beta}, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq \beta-2\hspace{0.5 cm} \beta\leq 3/2\\
+         t^{-4}, \hspace{1 cm} &\text{if} \hspace{0.5 cm} \alpha\leq\beta-2\hspace{0.5 cm} \beta\geq 3/2
     \end{array}
     \right . 
 \end{align}
@@ -276,7 +283,7 @@ For the function value ($l=1$) and a reasonable choice of $\alpha,\beta$ this me
 \paragraph{}
 \cite{nesterov2003introductory} has shown that the Nesterov matches up to a a constant factor a lower bound on the worst case complexity of non strongly convex problems. A natural question is if this performance would translate to good average case rates. \\
 We'll extend \cite{paquette2020halting} proof for the Nesterov method under the MP distribution  
-\begin{restatable}{thm}{nesterovrates}
+\begin{restatable}{theorem}{nesterovrates}
 Let $\nu$ as in assumption \ref{assumption}, then, for the Nesterov method:
 \begin{align}
     \mathbb{E}[f(\xx_t)-f(\xx^\star)]&\sim C'_{1,\nu}
@@ -292,25 +299,49 @@ Let $\nu$ as in assumption \ref{assumption}, then, for the Nesterov method:
 		  t^{-(\xi+9/2)}
 \end{align}
 \end{restatable}
+
 The optimality gap of nesterov is $t{\xi+l-1/2}$, when $\xi+l>1/2$, $\log t$ when $\xi+l=1/2$ and $0$ otherwise.
 This shows that Nesterov is almost optimal when the concentrations near $0$ are relatively high, i.e. low $\xi$\\
-Observe we again find the $t^{-2}$ rates for the function value when $\xi\rightarrow-1$
+
+\begin{restatable}{theorem}{gdrates}
+Let $\nu$ as in assumption \ref{assumption}, then for gradient descent:
+\begin{align}
+\mathbb{E}[f(\xx_t)-f(\xx^\star)]=\Theta(t^{-(\xi+2)})\\
+	\mathbb{E}[||\nabla f(\xx_t)||^2_2] =\Theta(t^{-(\xi+3)})
+\end{align}
+
+\end{restatable}
+
+Observe, for the function value, that we  find the $t^{-2}$ rates for Nesterov and $t^{-1}$ for Gradient Descent  when $\xi\rightarrow-1$
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{c|c|c|c}
-         $(\tau,\xi)$/Method& Chebyshev ($\frac{1}{2},\frac{5}{2}$) & Chebyshev ($\frac{1}{2},\frac{3}{2}$) &  Nesterov  \\
+    \begin{tabular}{c|c|c|c|c}
+         $(\tau,\xi)$/Method& Chebyshev ($\frac{1}{2},\frac{5}{2}$) & Chebyshev ($\frac{1}{2},\frac{3}{2}$) &  Nesterov  & G.D. \\
          \hline
-         ($\frac{3}{2},\frac{1}{2}$)&$t^{-5}$ & $t^{-4}$ & $t^{-4}$\\
+         ($\frac{1}{2},\frac{1}{2}$)&$t^{-5}$ & $t^{-4}$ & $t^{-4}$ & $t^{-\frac{5}{2}}$\\
          \hline
-         ($\frac{1}{2},\frac{1}{2}$)&$t^{-3}$ & $t^{-3}$ & $t^{-3}\log t$
-         
+         ($\frac{1}{2},\frac{-1}{2}$)&$t^{-3}$ & $t^{-3}$ & $t^{-3}\log t$ & t^{-\frac{3}{2}}
     \end{tabular}
-    \caption{Caption}
+    \caption{Comparison of asymptotic rates for the function-value for different methods an $(\tau,\xi)$ values}
     \label{tab:theoretic rates}
 \end{table}
 
+Lastly, we consider the optimal rates for a Gamma distribution.
 
+\begin{restatable}{theorem}{laguerrerates}
+Let $\alpha>-1$ and $\mu_\alpha$ be a Gamma distribution, i.e. $d\mu_\alpha(x)=\frac{x^\alpha e^{-x}}{\Gamma(\alpha+1)}$. The optimal rates are given by the Laguerre method of appropriate tuning and:
+\begin{equation}
+    \mathbb{E}[f(\xx_t)-f(\xx^\star)]=\Theta(t^{-(\alpha+2)})
+    %%we can get the constants here
+\end{equation}
+\end{restatable}
+Note that this result does not have the same universality of the others because of the non-compacity of the distribution's support.\\
+These rates are contrasted  to the worst case lower bound on the optimization of non-smooth functions by first order methods, which gives:
+\begin{equation*}
+    f(\xx_k)-f(\xx^\star)\geq\frac{C}{\sqrt{t}}
+\end{equation*}
+These rates are not found when $\alpha\rightarrow-1$, indicating that the worst case is specially pessimistic in this scenario.
 \section{Experiments}
 We estimated empirically the asymptotic rates from table \ref{tab:theoretic rates} by doing linear regression on the log-log domain. \\
 We synthesize the e.s.d's  either by means of the Marchenko Pastur that enables us to simulate $(\tau,\xi)$ values of $(1/2,3/2)$ and $(1/2,5/2)$. Other values are simulated by sampling from the corresponding Beta distribution and applying a random rotation to the diagonal matrix comprising those samples.\\ 
@@ -342,7 +373,7 @@ As ours are the asymptotic rates on the infinite dimensional case, i.e. we take 
     \includegraphics[width=5 cm]{imgs/theo vs practic.png}\includegraphics[width= 5 cm]{imgs/slopes.png}
     
     
-    \caption{Rates for a synthetic problem, simulating the Marchenko Pastur distribution. \textit{Left:} function value. \textit{Right}: gradient norm}
+    \caption{Left: Empirical vs theoretical rates for fixed $\xi$ and varying $\beta$. Right: Empirical slopes for varying $\xi$}
     \label{fig:my_label}
 \end{figure}
 
@@ -356,7 +387,7 @@ As ours are the asymptotic rates on the infinite dimensional case, i.e. we take 
          ($\frac{1}{2},\frac{1}{2}$)&$t^{-3.00}$ & $t^{-2.83}$ & $t^{-2.68}$
          
     \end{tabular}
-    \caption{Caption}
+    \caption{Empirical slopes for the function-value }
     \label{tab:experimental rates}
 \end{table}
 %%Chebyshev \beta=5/2 is not giving the expected gradient performance ...
@@ -378,17 +409,17 @@ We know that $\xx_t-\xx^\star=P_t(\HH)(\xinit)$. We can write $||\xx_t-\xx^\star
 \begin{align}
     \mathbb{E}||\xx_t-\xx^\star||^2&=\EE[ tr((\xinit)^TP_t(\HH)^2(\xinit))] \\
     &=\EE_{\HH,\xinit} [tr(P_t(\HH)^2(\xinit)(\xinit)^T]\\
-    &=\EE_\HH\left[P_T(\HH)^2\EE_{\xinit}[(\xinit)(\xinit)^T])\right]  \\
+    &=\EE_\HH\left[P_t(\HH)^2\EE_{\xinit}[(\xinit)(\xinit)^T])\right]  \\
     &=R^2\EE_\HH[P_t(tr(\HH))^2]=R^2 \int P_t(\lambda)^2\dif\mu(\lambda)
 \end{align}
 For the gradient and function value the reasoning is the same by noticing:
 \begin{align}
-    \EE[f(\xx_t)-f(\xx^\star)]&=\EE[ tr((\xinit)^TP_T(\HH)\HH P_t(\HH)(\xinit))]\\
+    \EE[f(\xx_t)-f(\xx^\star)]&=\EE[ tr((\xinit)^TP_t(\HH)\HH P_t(\HH)(\xinit))]\\
     &=\EE_\HH[(\lambda P_t)(\tr(H))^2] 
 \end{align}
-Where $\lambda P_t$ is the polynomial defined by the multiplication. As $\nabla f(\xx_t)=\HH(\xx_t-\xx^\star)$
+Where $\lambda P_t$ is also a  polynomial. As $\nabla f(\xx_t)=\HH(\xx_t-\xx^\star)$
 \begin{align}
-    \EE||\nabla f(\xx_t))||^2&=\EE[ tr((\xinit)^TP_T(\HH)\HH^2 P_t(\HH)(\xinit))]\\
+    \EE||\nabla f(\xx_t))||^2&=\EE[ tr((\xinit)^TP_t(\HH)\HH^2 P_t(\HH)(\xinit))]\\
     &=\EE_\HH[(\lambda^2 P_t)(\tr(H))^2]
 \end{align}
 
@@ -475,7 +506,7 @@ This can be seen as an additional layer of abstraction because the quantities ev
     \int P_t^2(x)\mu'(x)\dif x\propto \int \tp_t^2(x)\tmu'(x)\dif x
 \end{equation}
 So all the asymptotics are the same and we consider $\nu$ restricted to $[-1,1]$. 
-The Jacobi polynomials $\JP$ are orthogonal w.r.t; $d\mu(x)=(1-x)^\alpha(1+x)^\beta$, we note that most results give them in terms of normalization $\tp_t^{\alpha,\beta}(-1)=(-1)^n\binom{t+\beta}{t}$. We'l write $\tp^{\alpha,\beta}_t$ for this normalization and $\JP_t$ for the residual polynomials
+The Jacobi polynomials $\JP_t$ are orthogonal w.r.t; $d\mu(x)=(1-x)^\alpha(1+x)^\beta$, we note that most results give them in terms of normalization $\tp_t^{\alpha,\beta}(-1)=(-1)^t\binom{t+\beta}{t}$. We'l write $\tp^{\alpha,\beta}_t$ for this normalization and $\JP_t$ for the residual polynomials
 \robustjacobi*
 \begin{proof}
 We'll prove that for any $\alpha$ and $\beta$, $\xi,\tau>-1$, $l>0$ and $\nu$ following Assumption \ref{assumption}, we have:
@@ -513,12 +544,12 @@ We also state the following result (Exercise 91, Generalisation of 7.34.1) from 
 \begin{lemma}
 We have:
 \begin{align}
-    \int_0^1(1-x)^\tauP_t^{\alpha,\beta}(x)^2dx &\sim\Theta( h_{\tau}^\alpha) \\
-    h_{\tau}^\alpha&:=
+    &\int_0^1(1-x)^\tau P_t^{\alpha,\beta}(x)^2dx \sim\Theta( h_{\tau}^\alpha) \\
+    &h_{\tau}^\alpha:=
 \left\{
 	\begin{array}{ll}
 		t^{2(\alpha-\tau-1)}  & \mbox{if } \alpha>\tau+1/2 \\
-		t^{-1}\log n   & \mbox{if } \alpha=\tau+1/2 \\
+		t^{-1}\log t   & \mbox{if } \alpha=\tau+1/2 \\
 		t^{-1}   & \mbox{if } \alpha<\tau+1/2
 	\end{array}
 \right.
@@ -529,7 +560,7 @@ Noting that $\tp^{\alpha,\beta}_t(x)=(-1)^t\tp_t^{\beta,\alpha}(-x)$, we can wri
 \begin{equation}
     \int_{-1}^1\tp_t(x)^2(1-x)^\tau(1+x)^\xi dx = \Theta\left(\int_0^1(1-x)^\tau|\tp_t^{\alpha,\beta}(x)|^2dx\right) +\Theta\left(\int_0^1(1-x)^\xi|\tp_t^{\beta,\alpha}(x)|^2dx\right) \label{int decomp}
 \end{equation}
-We can then show our result for $\dif\nu_{\tau,\xi-l}(x)=x^{\xi-l}(L-x)^\alpha$ by carefully considering each of the cases on eq. \ref{jacobi lemma} and the maximum of each term in eq. \ref{int decomp}, and an added $t^{-2\beta}$ from the different normalization. \\
+We can then show our result for $\dif\nu_{\tau,\xi-l}(x)=x^{\xi-l}(L-x)^\alpha$ by carefully considering each of the cases on Lemma~\ref{jacobi lemma} and the maximum of each term in eq. \ref{int decomp}, and an added $t^{-2\beta}$ from the different normalization. \\
 It rests to show that all cases can be brought down to this one. Indeed we show simply:
 \begin{equation}
     \int_0^1 \tp_t^{\alpha,\beta}(x)^2\dif\nu_{\tau,\xi}(x)= \Theta\left(\int_0^1(1-x)^\tau\tp_t^{\alpha,\beta}(x)^2dx \right)
@@ -559,9 +590,9 @@ We'll prove that for $\tau,\xi>-1$ If $\alpha = \tau$ and $\beta = \xi+l+1$ (i.e
 \begin{equation}
     \min_{P_t(0)=1}\int P_t^2(\lambda)\lambda^ld\nu(\lambda)=\Theta\left( \int_{0}^l  \tp_t^{\alpha,\beta}(\lambda)^2(L-\lambda)^\tau\lambda^{\xi+l}\dif \lambda\right) =\Theta( t^{-2(\xi+l+1)})
 \end{equation}
-Showing the second equality is easy by considering theorem \ref{thm: jacobirat}, and that is further the minimum asymptotic rate for the Beta distribution. \\
+Showing the second equality is easy by considering theorem \ref{thm: jacobirates}, and that is further the minimum asymptotic rate for the Beta distribution. \\
 As $\tp^{\alpha,\beta}_t$ has the same rate on $\nu$ as  on the Beta distribution , the minimum rate for $\nu$ is lower bounded by the r.h.s. \\
-We argue that, setting $P^\nu_t=\frac{p^\nu}{}$ the optimal residual and orthonormal polynomials and $\mu_{\tau,\xi}$ the Beta distribution  w.r.t, $P^\nu_t$ must have the same rate on $\nu$ as it does on $\nu$. Indeed, setting $\epsilon_1,\epsilon_2$ as in eq. \ref{eq: epsilon}, we argue:
+We argue that, setting $P^\nu_t=\frac{p^\nu}{p^\nu_t(0)}$ the optimal residual and orthonormal polynomials and $\mu_{\tau,\xi}$ the Beta distribution  w.r.t, $P^\nu_t$ must have the same rate on $\nu$ as it does on $\nu$. Indeed, setting $\epsilon_1,\epsilon_2$ as in eq. \ref{eq: epsilon}, we argue:
 \begin{align}
     \int_{1-\epsilon_2}^{1}P_t^\nu(x)^2d\nu(x)&=\left(\Theta\int_{1-\epsilon_2}^{1}P_t^\nu(x)^2d\mu(x)\right)\\
     \int_{-1}^{-1+\epsilon_1}P_t^\nu(x)^2d\nu(x)&=\Theta\left(\int_{-1}^{-1+\epsilon_1}P_t^\nu(x)^2d\mu(x)\right)\\
@@ -616,7 +647,7 @@ We'll prove:
     \int_0^1P_t^{\text{Nes}}(\lambda)^2\lambda^l\dif\nu_{\tau,\xi-l}\sim C'_\nu
     \Big\{\begin{array}{ll}
           t^{-2(\xi+1)}& \mbox{if } 
-		  0<\xi<1/2  
+		  0<\xi<1/2  \\
 		  t^{-3}\log t& \mbox{if } 
 		  \xi=1/2\\
 		  t^{-(\xi+5/2)}& \mbox{if } 
@@ -629,10 +660,10 @@ We'll prove:
 \end{equation}
 In the sense that:
 \begin{equation}
-    \int_0^1u^{l}[\Tilde{P_t^2(u)}-\frac{4J_1^2(t\sqrt{u})}{t^2u}e^{-u t}\dif\mu_{MP}(u)=O(t^{-(l+25/12))}
+    \int_0^1u^{l}\left[\Tilde{P_t^2(u)}-\frac{4J_1^2(t\sqrt{u})}{t^2u}e^{-u t}\right]4\dif\mu_{MP}(u)=O(t^{-(l+25/12))}
 \end{equation}
 The arguments can be easily used to show that such an integral is $O(t^{ -(\alpha+l+31/12)})$ when evaluated wrt a general $\dif\mu$ s.t $\mu'=\Theta(\lambda^\alpha)$ near $0$. \\
-We can thus consider our integral  of interest substituting $P_t^\text{Nes}$ by it's Bessel asymptotic and dividing it into three regions, corresponding to two different regimes for the Bessel function. One of the regions will give us the asymptotic and the others we'll bound.\\
+We can thus consider our integral  of interest substituting $P_t^\text{Nes}$ by it's Bessel asymptotic and dividing it into three regions, i.e. $[0,1]=[0,\frac{\epsilon}{t}]\cup[\frac{\epsilon}{t},\frac{\epsilon}{\sqrt{t}}]\cup[\frac{\epsilon}{\sqrt{t}},1]$ corresponding to two different regimes for the Bessel function. The first region will give us the asymptotic and the others we'll bound.\\
 We consider first, for some $\epsilon>0$:
 \begin{equation}
     \int_{\frac{\epsilon}{t}}^{\frac{\epsilon}{\sqrt{t}}} u^{\xi}\frac{4J_1^2(t\sqrt{u})}{t^2u}e^{-u t}\dif u
@@ -653,7 +684,7 @@ Where the cosinus term goes to $0$ from the Riemann-Lebesgue lemma and $\Gamma$ 
 The term corresponding to the interval $[\epsilon t^{-1/2},1]$ is exponentially small. Indeed, because of the exponential $e^{-ut}$ it is  $O(e^{-\epsilon\sqrt{t}})$. This shows that the integral concentrates in a region that is closer and closer to $0$ and that only the behaviour of the distribution near $0$ matters.\\
 We have for the $[0,\frac{\epsilon}{t}]$ region, doing the change of variables $v=t^2u$:
 \begin{equation}
-    \int_0^{\frac{\epsilon}{t}} u^{\xi}\frac{4J_1^2(t\sqrt{u})}{t^2u}e^{-u t}\dif u &=\Theta\left(
+    \int_0^{\frac{\epsilon}{t}} u^{\xi}\frac{4J_1^2(t\sqrt{u})}{t^2u}e^{-u t}\dif u =\Theta\left(
     t^{-2(\xi+1)}\int_0^{t\epsilon} v^{\xi}\frac{J_1^2(\sqrt{v})}{v}e^{-\frac{v}{t}}\dif v\right)
 \end{equation}
 And the $e^{\frac{-v}{t}}$ is $\Theta(1)$. We have the following Bessel asymptotics:
@@ -672,7 +703,27 @@ So we divide this integral aswell:
 Where $I_\xi(t)=\log t$ if $\xi=\frac{1}{2}$ and $1$ otherwise. \\
 The nesterov rate is then $I_\xi(t)t^{-\xi-\frac{5}{2}}$ if $\xi\geq\frac{1}{2}$ and $t^{-2(\xi+1)}$ if $0<\xi<\frac{1}{2}$
 \end{proof}
+\gdrates*
+\begin{proof}
+Considering that $P_t^\text{GD}(\lambda)=(1-\frac{\lambda}{L})^t$ we'll prove :
+\begin{equation}
+    \int_0^1(1-\lambda)^{2t}\lambda^l\dif\nu_{\tau,\xi-l}=\Theta(t^{-(\xi+l+1)}
+\end{equation}
+We know, for the Beta weights, that:
+\begin{equation}
+    \int_0^1(1-\lambda)^{2t+\tau}\lambda^{\xi+l}\dif\lambda=\frac{\Gamma(l+\xi+1)\Gamma(2t+\tau+1)}{\Gamma(et+l+\xi+\tau+2}=\Theta(t^{-(\xi+l+1)})
+\end{equation}
+We can indentify this asymptotic to the interval $\int_0^\epsilon$ for any $\epsilon$ because:
+\begin{equation}
+    \int_\epsilon^1(1-\lambda)^{2t+\tau}\lambda^{\xi+l}\dif\lambda=\mathcal{O}((1-\epsilon)^{2t})
+\end{equation}
+Then:
+\begin{align}
+    \int_\epsilon^1(1-\lambda)^{2t}\lambda^l\dif\nu_{\tau,\xi-l}&=\mathcal{O}((1-\epsilon)^{2t}) \\
+    \int0^\epsilon(1-\lambda)^{2t}\lambda^l\dif\nu_{\tau,\xi-l}&=\Theta\left(\int_0^\epsilon(1-\lambda)^{2t+\tau}\lambda^{\xi+l}\dif\lambda\right)=\Theta(t^{-(\xi+l+1)})
+\end{align}
 
+\end{proof}
 
 %%What happens when L is not properly set?
 %% nesterov rates with tau< 1/2
