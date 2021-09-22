@@ -24,15 +24,16 @@ Average-Case Universality and Robustness in the Convex Regime}
 \maketitle
 \begin{abstract}
     Recent works have studied the average convergence properties of first-order optimization methods on distributions of quadratic problems. 
-    The average case framework allows a more fine-grained and representative analysis of convergence in exchange for a more precise hypothesis over the data, namely the expected spectral distribution. 
-    In this work, we show that a problem's asymptotic complexity is determined by the concentration of eigenvalues near the edges of its eigenspectra. This is effectively a middle ground between the coarseness of the worst-case analysis and the unrealistic hypothesis of an exact spectrum.
+    The average-case framework allows a more fine-grained and representative analysis of convergence than the usual worst-case analysis in exchange for a more precise hypothesis over the data generating process, namely the expected spectral distribution (e.s.d) of the random matrix associated to the loss function. 
+    In this work, we show that a problem's asymptotic complexity is determined by the concentration of near the edges of the e.s.d. of the problem. We argue this is a more grounded hypothesis, i.e. we can feasibly assume approximate concentrations in practical situations,  and that this is effectively a middle ground between the coarseness of the worst-case analysis and the unrealistic hypothesis of an exact spectrum.
     We introduce the Generalized Chebyshev method, asymptotically optimal under a hypothesis on this concentration, and globally optimal when the spectrum is a Beta distribution .
-    We compare it's performance to the Nesterov method \citep{nesterov2003introductory}, and gradient descent, and we show that the asymptotic convergence of Nesterov is close to optimum in practical scenarios.
+    We compare its performance to the Nesterov method, and gradient descent, and we show that the asymptotic convergence of Nesterov is close to optimum in practical scenarios.
 \end{abstract}
 \section{Introduction}
 The analysis of the average complexity of algorithms has a long story in computer science. Notably, the quicksort algorithm presents a worst-case complexity of $O(n^2)$, but it's average case complexity is $O(n\log n)$ which makes it  empirically very competitive despite it's worst-case complexity. Average case complexity also drives much of the decisions made in cryptography \citep{bogdanov2006average}.
-%The average case analysis of optimization algorithm has stayed an unexplored problem for long because of the ill-defined notion of a distribution over the optimization problems.
-Despite it's relevance, average case analyses are difficult to extend to other algorithms, mainly because of the intrinsic issue of defining what would be a typical a distribution over the problems. Recently though, \cite{pedregosa2020acceleration}  derived a framework to systemically evaluate the complexity of first-order methods when applied on distributions of quadratic minimization problems. This is done by tying the average of the convergence metrics to the \textit{expected spectral distribution} of the problem, which is a well studied object on Random Matrix Theory. \\
+
+Despite it's relevance, average case analyses are difficult to extend to other algorithms, mainly because of the intrinsic issue of defining what would be a typical a distribution over the problems. Recently though, \cite{pedregosa2020acceleration}  derived a framework to systemically evaluate the complexity of first-order methods when applied on distributions of quadratic minimization problems. This is done by tying the average of the convergence metrics to the \textit{expected spectral distribution} of the problem, which is a well studied object on random matrix theory.
+
 \cite{paquette2020halting}  extended this work by introducing a new noisy generative model for the problems . They further derived the average complexity of the Nesterov Accelerated Method \cite{nesterov2003introductory} on a particular distribution and showed the strong concentration of the metrics around a limiting value as dimensions go to infinite. 
 
 
@@ -44,10 +45,10 @@ In this work, we approach the non-strongly convex case, with a focus on the smoo
 In this paper, we show that the worst-case complexity of optimization methods on convex problem is much more pessimistic that their average-case. That is, there is a gap between the two analyses. This result is in opposition with the strongly convex case, where both the worst case and average case are asymptotically equal.
 %In this paper, we show that, differently from the strongly convex case where the worst-case and average case rates are asymptotically the same, in the simply convex scenario, the worst-case is much more pessimistic than the average-case. That is there is an strict gap between the asymptotic rates in both analysis. Especially in high dimensions  the problem has enough degrees of freedom to be highly adversarial. 
 
-The different sublinear rates of convergence are of great consequence in the context of large scale algorithms. A sublinear improvement in this scenario can translate to many hours of computation, or yet be the difference between a feasible and unfeasible problem.
+%The different sublinear rates of convergence are of great consequence in the context of large scale algorithms. A sublinear improvement in this scenario can translate to many hours of computation, or yet be the difference between a feasible and unfeasible problem.
 
 
-A drawback on average case analysis is that it relies, \textit{a priori}, on a much stronger hypothesis, the shape of the \textit{expected spectral distribution} as we will see, when compared to the worst-case analysis, that relies only on the values of the edges of this distribution. 
+A drawback on average case analysis is that it relies, \textit{a priori}, on a much stronger hypothesis,  the \textit{expected spectral distribution} as we will see, when compared to the worst-case analysis, that relies only on the values of the edges of this distribution. 
 
 One of our contributions a middle ground between the strength of these two assumptions, allowing for a \emph{robust} analysis of the average case convergence. That is, we compare the algorithm's performance under different notions of uncertainty on the spectrum. This allows us  to choose the best algorithm for a practical problem based in realistic, i.e. imperfect, information.
 
@@ -197,7 +198,7 @@ This theorem further implies that the optimal first-order method is a momentum m
 \end{equation}
 Following Remark \ref{rmk: momentum based}, the optimal method is derived from this recurrence as
 \begin{equation}
-    \xx_{t+1}=\xx_t+(a_t-1)(\xx_t-\xx_{t-1})+b_t\nabla f(\xx_t).
+    \xx_{t+1}=\xx_t+(a_t-1)(\xx_t-\xx_{t-1})+b_t\nabla f(\xx_t)\,.
 \end{equation}
 
 
@@ -208,8 +209,7 @@ Being able to write the rates in terms of the \textit{expected spectral distribu
 \begin{definition}
 We say a sequence of measures $(\mu_n)$ converges weakly to a measure $\mu$ if for any bounded and continuous function $f$ we have
 \begin{equation}
-    \lim_{n\rightarrow\infty}\int f(x)\dif \mu_n(x)=\int f(x) \dif\mu(x)
-.
+    \lim_{n\rightarrow\infty}\int f(x)\dif \mu_n(x)=\int f(x) \dif\mu(x)\,.
 \end{equation}
 
 \end{definition}
@@ -283,14 +283,6 @@ A Generalized Chebyshev Method with parameters $(\alpha,\beta)$ applied to a pro
 \end{align}
 where $C^{\alpha,\beta}_\nu$ is a distribution dependent constant.
 \end{restatable}
-\begin{wrapfigure}{r}{0.4\textwidth}
-    \centering
-    %\includegraphics[width=10 cm]{imgs/diagram.PNG}
-    \includegraphics[width=4 cm]{new_imgs/cmap.png}
-    
-    \caption{Colormap for the function value rates  for the Marchenko Pastur distribution and different tunings of the Generalized Chebyshev Method, $\alpha$ and. The white represents the optimal tuning, and the color represents the exponent, e.g. 'cooler' is better.}
-
-\end{wrapfigure}
 
 Theorem \ref{thm: optimality} shows that a proper choice of $\alpha,\beta$ can indeed make the Jacobi polynomial asymptotically optimal w.r.t. to any $\nu_{\tau,\xi}$. 
 
@@ -301,6 +293,17 @@ The optimal asymptotic rate for $\mathbb{E}[f(\xx_t)-f(\xx^\star)]$ is $t^{-2(\x
 
 The optimal rate for $\mathbb{E}[||\nabla f(\xx_t)||^2_2]$ is $t^{-2(\xi+3)}$ and is attained by the Chebyshev Method with parameters $(\tau,\xi+3)$.
 \end{restatable}
+
+\begin{wrapfigure}{r}{0.6\textwidth}
+    \centering
+    %\includegraphics[width=10 cm]{imgs/diagram.PNG}
+    \includegraphics[width=0.4\textwidth]{new_imgs/cmap.png}
+    \begin{small}
+    \caption{Colormap for the function value average rates  for the Marchenko Pastur distribution and different tunings of the Generalized Chebyshev Method, $\alpha$ and. The white represents the optimal tuning, and the color represents the exponent, e.g. 'cooler' is better.}
+    \end{small}
+    \vspace{-2 cm}
+\end{wrapfigure}
+
 
 For the function value ($l=1$), we find rates that approach $t^{-2}$ as $\xi\rightarrow -1$, showing the worst-case as a limit (over the considered distribution) on the average case.
 \begin{comment}
@@ -319,6 +322,7 @@ We remark that the above theorems imply that, at least asymptotically, the Jacob
 
 
 For completeness, we also derive worst-case rates for the Jacobi method:
+\vspace{1.5 cm}
 
 \begin{restatable}{prop}{worstcase}
 Let $f$ be a convex, L-smooth quadratic function. Then, for the Generalized Chebyshev Method with parameters $(\alpha,\beta)$, we have:
@@ -491,7 +495,7 @@ The GCM with  $\beta>\beta^\star$ perform corresponding to the theory, and it's 
 
 
 \section{Conclusion}
-From a practical standpoint, we have proposed f.o.m., the Generalized Chebyshev method which shows remarkable performance on real world datasets. 
+From a practical standpoint, we have proposed the Generalized Chebyshev method which shows remarkable performance on real world datasets. 
 
 From a theoretical standpoint, we've shown the Nesterov method, which is easier to implement and more numerically stable, to be very close to the asymptotic optimum   under some natural assumptions over the data, namely a concentration of eigenvalues around $0$ similar to the Marchenko-Pastur measure. This adds to the theoretical understanding of why Nesterov acceleration is such a good method in practice. 
 
@@ -506,13 +510,13 @@ We consider analysing the Generalized Chebyshev methods and the average converge
 
 \appendix
 \newpage
-\section{Proofs of Section 2}
+\section{Proofs of Section \ref{section: average case}}
 \metrics*
 \begin{proof}
 \newcommand\xinit{\xx_0-\xx^\star}
-We remark that by the definition of the expected spectral distribution $\mu$ of $\HH$, we have for continuous $g$:
+We remark that by the definition of the expected spectral distribution $\mu$ of $\HH$, we have for continuous $g$
 \begin{equation}
-    \EE_H[g(tr(\HH))]=\int g(\lambda)\dif \mu(\lambda)
+    \EE_H[g(tr(\HH))]=\int g(\lambda)\dif \mu(\lambda) 
 \end{equation}
 We know that $\xx_t-\xx^\star=P_t(\HH)(\xinit)$. We can write $||\xx_t-\xx^\star||^2$ in terms of a trace and use the independence of $\HH$ and $\xinit$ to connect it to the e.s.d.:
 \begin{align}
@@ -521,12 +525,12 @@ We know that $\xx_t-\xx^\star=P_t(\HH)(\xinit)$. We can write $||\xx_t-\xx^\star
     &=\EE_\HH\left[P_t(\HH)^2\EE_{\xinit}[(\xinit)(\xinit)^T])\right]  \\
     &=R^2\EE_\HH[P_t(tr(\HH))^2]=R^2 \int P_t(\lambda)^2\dif\mu(\lambda)
 \end{align}
-For the gradient and function value the reasoning is the same by noticing:
+For the gradient and function value the reasoning is the same by noticing that
 \begin{align}
     \EE[f(\xx_t)-f(\xx^\star)]&=\EE[ tr((\xinit)^TP_t(\HH)\HH P_t(\HH)(\xinit))]\\
-    &=\EE_\HH[(\lambda P_t)(\tr(H))^2] 
+    &=\EE_\HH[(\lambda P_t)(\tr(H))^2],
 \end{align}
-Where $\lambda P_t$ is also a  polynomial. As $\nabla f(\xx_t)=\HH(\xx_t-\xx^\star)$
+where $\lambda P_t$ is also a  polynomial. As $\nabla f(\xx_t)=\HH(\xx_t-\xx^\star)$.
 \begin{align}
     \EE||\nabla f(\xx_t))||^2&=\EE[ tr((\xinit)^TP_t(\HH)\HH^2 P_t(\HH)(\xinit))]\\
     &=\EE_\HH[(\lambda^2 P_t)(\tr(H))^2]
@@ -552,12 +556,12 @@ We will first state two lemmas that allow us to construct the optimal polynomial
 \begin{lemma}
 Let $(\tp_t)$ be a family polynomials  following  
 \begin{equation*}
-    \tp_t(\lambda)=(\alpha_t+\beta_t\lambda)\tp_{t-1})\lambda)+\gamma_t\tp_{t-2}(\lambda)
+    \tp_t(\lambda)=(\alpha_t+\beta_t\lambda)\tp_{t-1})\lambda)+\gamma_t\tp_{t-2}(\lambda),
 \end{equation*}
-With $\tp_0$ a constant polynomial and $\tp_t\neq0, \forall t$. Then:
+with $\tp_0$ a constant polynomial and $\tp_t\neq0, \forall t$. Then
 \begin{equation}
     P_t(\lambda)=(a_t+b_t\lambda)P_{t-1}(\lambda)+(1-a_t)P_{t-2}(\lambda)
-\end{equation} Is the recurrence for $P_t(\lambda)=\tp_t(\lambda)/\tp_t(0)$. With:
+\end{equation} is the recurrence for $P_t(\lambda)=\tp_t(\lambda)/\tp_t(0)$. With:
 \begin{align}
     a_t&=\delta_t\alpha_t \\
     b_t&=\delta_t\beta_t \\
@@ -569,13 +573,13 @@ The proof of this is presented in \cite{pedregosa2020acceleration}. Further, we 
 
 Let $(\tp_t)$ be a family polynomials orthogonal w.r.t  following  
 \begin{equation}    \label{rec}
-    \tp_t(\lambda)=(\alpha_t+\beta_t\lambda)\tp_{t-1}(\lambda)+\gamma_t\tp_{t-2}(\lambda
+    \tp_t(\lambda)=(\alpha_t+\beta_t\lambda)\tp_{t-1}(\lambda)+\gamma_t\tp_{t-2}(\lambda) ,
 \end{equation}
-And define polynomials $P_t$ s.t. :
+and define polynomials $P_t$ s.t. :
 $$
-P_t(m(\lambda))=\tp_t(\lambda)
+P_t(m(\lambda))=\tp_t(\lambda),
 $$
-With $m(\lambda)=a\lambda+b$ a non singular affine transform. Then $P_t$ follows a recurrence like in eq. \eqref{rec}, with:
+with $m(\lambda)=a\lambda+b$ a non singular affine transform. Then $P_t$ follows a recurrence like in eq. \eqref{rec}, with:
 \begin{align}
     \alpha_t'&=\alpha_t+b\beta_t \\
     \beta'_t&=a\beta_t\\
